@@ -113,6 +113,33 @@
 - [x] **Step 4 (after the user-approved push): verify.** The Actions run on `main` goes green; the package appears under the user's ghcr packages; set it to public in the package settings (manual, one-time); `docker pull` it anonymously; run the cosign verify command from the README. Expected: verification succeeds.
 - [x] **Step 5 (optional, user-approved): test the rolling tags.** Push tag `v0.1.0` and confirm that `0.1.0`, `0.1` and (per metadata-action's behavior for 0.x) the major tag appear. Then optionally tag `v1.0.0` and `v1.0.1`, and confirm `1` and `1.0` move.
 
+### Task 6: Multi-arch image, release assets, automated release
+
+**Files:**
+- Modify: `Dockerfile`, `.github/workflows/ci.yml`, `README.md`
+
+**Constraints:**
+- Platforms: `linux/amd64`, `linux/arm64`.
+- The scan step stays single-platform (amd64): buildx cannot `load` a multi-arch image. Document this in the README.
+- Release assets for `v*` tags:
+  - Binaries `golang-docker-example_<version>_<os>_<arch>.tar.gz` for `linux` and `darwin` on `amd64` and `arm64` (four archives, each containing the binary; `<version>` has no `v` prefix).
+  - `checksums.txt` (sha256 of every archive).
+  - One SBOM per image platform: `sbom_<version>_linux_<arch>.spdx.json`.
+- Tags containing `-` create a GitHub pre-release; others create a full release.
+- The existing `v1.0.0` release is left untouched.
+
+**Interfaces:**
+- Consumes: the `push` step's `digest` output (Task 4).
+- Produces: a `digest` output on the `build-scan-push` job, consumed by the new `release` job.
+
+- [x] **Step 1: Dockerfile cross-compile.** Make the builder stage `FROM --platform=$BUILDPLATFORM golang:1.26.10 AS build`; add `ARG TARGETOS TARGETARCH`; build with `GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0`. Verify: `docker buildx build --platform linux/amd64,linux/arm64 .` succeeds and `mise run docker-build && mise run docker-run` still serves `/hello` on the arm64 host.
+- [x] **Step 2: Workflow push step.** Add `platforms: linux/amd64,linux/arm64` to the "Push image" step only. Expose `digest: ${{ steps.push.outputs.digest }}` as a `build-scan-push` job output.
+- [x] **Step 3: Add a `release` job.** `needs: build-scan-push`, `if: startsWith(github.ref, 'refs/tags/v')`, `permissions: contents: write, packages: read`. Steps: checkout; `setup-go` (`go-version-file: go.mod`); cross-compile the four binaries and package them as `.tar.gz`; write `checksums.txt`; log in to ghcr.io and extract each platform's attested SBOM from `${IMAGE}@<digest>` with `docker buildx imagetools inspect --format '{{json .SBOM}}'` (fallback if that does not yield clean per-platform SPDX: `trivy image --format spdx-json`); run `gh release create "$GITHUB_REF_NAME" --generate-notes` with all files, a notes header containing the `docker pull ghcr.io/<repo>:<version>` and `cosign verify` commands, and `--prerelease` when the tag contains `-`.
+- [x] **Step 4: Lint.** `mise exec actionlint@latest -- actionlint`. Expected: no errors.
+- [x] **Step 5: README.** Document the platforms, the release assets, how to verify checksums, and the single-arch scan caveat.
+- [x] **Step 6: Commit locally:** `feat: publish multi-arch images and release assets`. Do not push until the user approves.
+- [ ] **Step 7: Verify (after the user-approved push).** Tag `v1.0.1-rc.1`; expect a pre-release with 4 archives, `checksums.txt` and 2 SBOMs, `docker buildx imagetools inspect` showing both platforms, and the image running natively on the arm64 Mac. Then tag `v1.0.1`; expect a full release with the notes header, `1.0.1`, `1.0`, `1` and `latest` moved, and `cosign verify` succeeding.
+
 ---
 
 ## Execution notes

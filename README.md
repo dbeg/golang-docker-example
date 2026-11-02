@@ -23,6 +23,20 @@ mise run docker-run
 (HIGH/CRITICAL findings fail the build), then pushes and signs it with cosign
 (keyless). Pull requests build, test and scan only.
 
+The image is published for `linux/amd64` and `linux/arm64`. The Trivy scan runs
+against the amd64 build only (buildx cannot load a multi-arch image for
+scanning); the arm64 build uses the same base image and the same source.
+
+## Releases
+
+Pushing a `v*` git tag publishes the image and creates a GitHub release
+(tags containing `-` are marked pre-release) with these assets:
+
+- `golang-docker-example_<version>_<os>_<arch>.tar.gz` for linux and darwin on
+  amd64 and arm64
+- `checksums.txt` (sha256), check with `sha256sum -c checksums.txt`
+- `sbom_<version>_linux_<arch>.spdx.json`, the image's SBOM per platform
+
 ## Image tags
 
 | Event | Tags |
