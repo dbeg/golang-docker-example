@@ -138,7 +138,7 @@
 - [x] **Step 4: Lint.** `mise exec actionlint@latest -- actionlint`. Expected: no errors.
 - [x] **Step 5: README.** Document the platforms, the release assets, how to verify checksums, and the single-arch scan caveat.
 - [x] **Step 6: Commit locally:** `feat: publish multi-arch images and release assets`. Do not push until the user approves.
-- [ ] **Step 7: Verify (after the user-approved push).** Tag `v1.0.1-rc.1`; expect a pre-release with 4 archives, `checksums.txt` and 2 SBOMs, `docker buildx imagetools inspect` showing both platforms, and the image running natively on the arm64 Mac. Then tag `v1.0.1`; expect a full release with the notes header, `1.0.1`, `1.0`, `1` and `latest` moved, and `cosign verify` succeeding.
+- [x] **Step 7: Verify (after the user-approved push).** Tag `v1.0.1-rc.1`; expect a pre-release with 4 archives, `checksums.txt` and 2 SBOMs, `docker buildx imagetools inspect` showing both platforms, and the image running natively on the arm64 Mac. Then tag `v1.0.1`; expect a full release with the notes header, `1.0.1`, `1.0`, `1` and `latest` moved, and `cosign verify` succeeding.
 
 ---
 
@@ -150,3 +150,4 @@ Completed 2026-11-02. Deviations from the plan as written:
 - Action versions are current majors (`checkout@v7`, `setup-go@v7`, `build-push-action@v7`, etc.), not the v4/v5 in Task 4. `sigstore/cosign-installer` and `aquasecurity/trivy-action` are pinned to exact tags (no floating major).
 - Added a `scan` mise task (trivy, `--db-repository ghcr.io/aquasecurity/trivy-db` to get past Zscaler) and `trivy` in `mise.toml`.
 - Rolling-tag test used `v0.0.1` and `v0.0.2-rc.1`; `metadata-action` does publish the bare `0` tag for 0.x. The RC published only its exact tag.
+- Task 6 verified with `v1.0.1-rc.1` (pre-release, 7 assets, both platforms) then `v1.0.1`. Local multi-platform builds are blocked by Zscaler (gcr.io layer 403), so amd64 was checked by cross-compiling the builder stage; the SBOM extraction uses `jq` to handle both single- and multi-platform `imagetools` output.
