@@ -1,2 +1,22 @@
 [tools]
-go = "1.26"
+go = "1.26.10"
+
+[tasks.run]
+description = "Run the app locally"
+run = "go run ."
+
+[tasks.test]
+description = "Run tests"
+run = "go test ./..."
+
+[tasks.lint]
+description = "Run go vet"
+run = "go vet ./..."
+
+[tasks.docker-build]
+description = "Build the docker image"
+run = "docker build -t golang-docker-example:dev ."
+
+[tasks.docker-run]
+description = "Run the docker image on :8080"
+run = "docker run --rm -p 8080:8080 golang-docker-example:dev"
