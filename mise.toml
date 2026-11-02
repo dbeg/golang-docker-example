@@ -1,5 +1,6 @@
 [tools]
 go = "1.26.10"
+trivy = "latest"
 
 [tasks.run]
 description = "Run the app locally"
@@ -20,3 +21,8 @@ run = "docker build -t golang-docker-example:dev ."
 [tasks.docker-run]
 description = "Run the docker image on :8080"
 run = "docker run --rm -p 8080:8080 golang-docker-example:dev"
+
+[tasks.scan]
+description = "Scan the dev image with trivy (fails on HIGH/CRITICAL)"
+depends = ["docker-build"]
+run = "trivy image --db-repository ghcr.io/aquasecurity/trivy-db --severity HIGH,CRITICAL --exit-code 1 golang-docker-example:dev"
