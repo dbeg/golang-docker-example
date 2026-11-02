@@ -43,17 +43,17 @@
 **Interfaces:**
 - Produces: `func newMux() *http.ServeMux`, `func addr() string` (returns `":" + $PORT`, default `":8080"`). Binary entrypoint `main()` serves `newMux()` on `addr()`.
 
-- [ ] **Step 1: Init module.** `go mod init github.com/<github-user>/golang-docker-example` (ask user for the username if unknown; `gh api user -q .login` works if authenticated). Set the `go` directive to the pinned version.
-- [ ] **Step 2: Write failing tests in `main_test.go`** using `httptest`:
+- [x] **Step 1: Init module.** `go mod init github.com/<github-user>/golang-docker-example` (ask user for the username if unknown; `gh api user -q .login` works if authenticated). Set the `go` directive to the pinned version.
+- [x] **Step 2: Write failing tests in `main_test.go`** using `httptest`:
   - `TestHello`: `GET /hello` -> 200, `Content-Type: application/json`, body decodes to `{"message":"hello, world"}`.
   - `TestHealthz`: `GET /healthz` -> 200.
   - `TestMethodNotAllowed`: `POST /hello` and `POST /healthz` -> 405.
   - `TestNotFound`: `GET /nope` -> 404.
   - `TestAddr`: with `PORT` unset -> `":8080"`; with `t.Setenv("PORT","9000")` -> `":9000"`.
-- [ ] **Step 3: Run `go test ./...`.** Expected: FAIL (undefined `newMux`, `addr`).
-- [ ] **Step 4: Implement in `main.go`.** Use `mux.HandleFunc("GET /hello", ...)` and `"GET /healthz"` (method patterns give the 405/404 behavior). Encode JSON with `encoding/json`. `main()` uses `http.ListenAndServe(addr(), newMux())` and logs a fatal error on failure.
-- [ ] **Step 5: Run `go vet ./... && go test ./...`.** Expected: PASS.
-- [ ] **Step 6: Commit** (`git init` first if the directory is not yet a repo): `feat: add hello and healthz http handlers`.
+- [x] **Step 3: Run `go test ./...`.** Expected: FAIL (undefined `newMux`, `addr`).
+- [x] **Step 4: Implement in `main.go`.** Use `mux.HandleFunc("GET /hello", ...)` and `"GET /healthz"` (method patterns give the 405/404 behavior). Encode JSON with `encoding/json`. `main()` uses `http.ListenAndServe(addr(), newMux())` and logs a fatal error on failure.
+- [x] **Step 5: Run `go vet ./... && go test ./...`.** Expected: PASS.
+- [x] **Step 6: Commit** (`git init` first if the directory is not yet a repo): `feat: add hello and healthz http handlers`.
 
 ### Task 2: mise config and local tasks
 
@@ -64,9 +64,9 @@
 - Consumes: Task 1 module; Task 3 Dockerfile (used by the docker tasks).
 - Produces: tasks `run`, `test`, `lint`, `docker-build`, `docker-run`.
 
-- [ ] **Step 1: Write `mise.toml`.** `[tools] go = "<pinned>"`. Tasks: `run` = `go run .`; `test` = `go test ./...`; `lint` = `go vet ./...`; `docker-build` = `docker build -t golang-docker-example:dev .`; `docker-run` = `docker run --rm -p 8080:8080 golang-docker-example:dev`. (`lint` is included per the design's "only if wanted" note; CI's `go vet` step can call `mise run lint`, or drop the task if the user declines.)
-- [ ] **Step 2: Verify.** `mise install && mise run test`. Expected: PASS. `mise tasks` lists all five.
-- [ ] **Step 3: Commit:** `chore: add mise config and tasks`.
+- [x] **Step 1: Write `mise.toml`.** `[tools] go = "<pinned>"`. Tasks: `run` = `go run .`; `test` = `go test ./...`; `lint` = `go vet ./...`; `docker-build` = `docker build -t golang-docker-example:dev .`; `docker-run` = `docker run --rm -p 8080:8080 golang-docker-example:dev`. (`lint` is included per the design's "only if wanted" note; CI's `go vet` step can call `mise run lint`, or drop the task if the user declines.)
+- [x] **Step 2: Verify.** `mise install && mise run test`. Expected: PASS. `mise tasks` lists all five.
+- [x] **Step 3: Commit:** `chore: add mise config and tasks`.
 
 ### Task 3: Dockerfile
 
@@ -76,10 +76,10 @@
 **Interfaces:**
 - Produces: image exposing 8080, running as nonroot, entrypoint `/app`.
 
-- [ ] **Step 1: Write `Dockerfile`.** Stage `build` from `golang:<pinned>`; `WORKDIR /src`; copy `go.mod` then `go mod download` (cache layer; harmless with no deps); copy source; `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /app .`. Final stage `gcr.io/distroless/static:nonroot`; `COPY --from=build /app /app`; `EXPOSE 8080`; `ENTRYPOINT ["/app"]`.
-- [ ] **Step 2: Write `.dockerignore`:** `.git`, `docs`, `.github`, `mise.toml`, `*.md`.
-- [ ] **Step 3: Verify.** `mise run docker-build`, then `mise run docker-run` in the background and check `curl -s localhost:8080/hello` returns the JSON and `curl -si localhost:8080/healthz` returns 200. Stop the container. Check `docker image ls golang-docker-example:dev` size is small (roughly 5-15 MB).
-- [ ] **Step 4: Commit:** `feat: add multi-stage dockerfile`.
+- [x] **Step 1: Write `Dockerfile`.** Stage `build` from `golang:<pinned>`; `WORKDIR /src`; copy `go.mod` then `go mod download` (cache layer; harmless with no deps); copy source; `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /app .`. Final stage `gcr.io/distroless/static:nonroot`; `COPY --from=build /app /app`; `EXPOSE 8080`; `ENTRYPOINT ["/app"]`.
+- [x] **Step 2: Write `.dockerignore`:** `.git`, `docs`, `.github`, `mise.toml`, `*.md`.
+- [x] **Step 3: Verify.** `mise run docker-build`, then `mise run docker-run` in the background and check `curl -s localhost:8080/hello` returns the JSON and `curl -si localhost:8080/healthz` returns 200. Stop the container. Check `docker image ls golang-docker-example:dev` size is small (roughly 5-15 MB).
+- [x] **Step 4: Commit:** `feat: add multi-stage dockerfile`.
 
 ### Task 4: GitHub Actions workflow
 
@@ -89,9 +89,9 @@
 **Interfaces:**
 - Consumes: Task 3 Dockerfile; Task 1 tests.
 
-- [ ] **Step 1: Triggers and permissions.** `on:` `pull_request`; `push` with `branches: [main]` and `tags: ['v*']`. Workflow-level `permissions: contents: read`; the `build-scan-push` job adds `packages: write` and `id-token: write`.
-- [ ] **Step 2: `test` job.** `actions/checkout@v4`, `actions/setup-go@v5` with `go-version-file: go.mod`, run `go vet ./...` and `go test ./...`.
-- [ ] **Step 3: `build-scan-push` job** (`needs: test`), in order:
+- [x] **Step 1: Triggers and permissions.** `on:` `pull_request`; `push` with `branches: [main]` and `tags: ['v*']`. Workflow-level `permissions: contents: read`; the `build-scan-push` job adds `packages: write` and `id-token: write`.
+- [x] **Step 2: `test` job.** `actions/checkout@v4`, `actions/setup-go@v5` with `go-version-file: go.mod`, run `go vet ./...` and `go test ./...`.
+- [x] **Step 3: `build-scan-push` job** (`needs: test`), in order:
   1. checkout; `docker/setup-buildx-action@v3`.
   2. `docker/metadata-action@v5` with `images: ghcr.io/${{ github.repository }}` and tags: `type=raw,value=latest,enable={{is_default_branch}}`; `type=sha`; `type=semver,pattern={{version}}`; `type=semver,pattern={{major}}.{{minor}}`; `type=semver,pattern={{major}}`. (Metadata-action omits the major/minor patterns for pre-releases. Confirm in step 6.)
   3. `docker/build-push-action@v6` with `load: true`, `push: false`, a single local tag `scan:local`, and `cache-to`/`cache-from: type=gha`.
@@ -99,16 +99,27 @@
   5. `if: github.event_name != 'pull_request'`: `docker/login-action@v3` to `ghcr.io` with `${{ github.actor }}` / `GITHUB_TOKEN`.
   6. Same `if:`: `docker/build-push-action@v6` with `id: push`, `push: true`, `tags: ${{ steps.meta.outputs.tags }}`, `labels: ${{ steps.meta.outputs.labels }}`, `provenance: true`, `sbom: true`, `cache-from: type=gha`.
   7. Same `if:`: `sigstore/cosign-installer@v3`, then `cosign sign --yes ghcr.io/${{ github.repository }}@${{ steps.push.outputs.digest }}`. (Repository must be lowercase; owner names are lowercase here, otherwise lowercase it in a step.)
-- [ ] **Step 4: Lint the workflow** if `actionlint` is available via `mise exec actionlint@latest -- actionlint`; expected: no errors. Otherwise re-read the YAML for indentation and `if:` correctness.
-- [ ] **Step 5: Commit:** `ci: add test, scan, publish and sign workflow`.
+- [x] **Step 4: Lint the workflow** if `actionlint` is available via `mise exec actionlint@latest -- actionlint`; expected: no errors. Otherwise re-read the YAML for indentation and `if:` correctness.
+- [x] **Step 5: Commit:** `ci: add test, scan, publish and sign workflow`.
 
 ### Task 5: README, repo creation, first run
 
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: Write a short `README.md`:** what it is; `mise run run/test/docker-build/docker-run`; the tag scheme; how to verify the signature: `cosign verify ghcr.io/<user>/golang-docker-example:latest --certificate-identity-regexp 'https://github.com/<user>/golang-docker-example/' --certificate-oidc-issuer https://token.actions.githubusercontent.com`.
-- [ ] **Step 2: Commit:** `docs: add readme`.
-- [ ] **Step 3: STOP and ask the user** before creating or pushing the remote. On approval: `gh repo create golang-docker-example --public --source=. --remote=origin` (confirm the remote URL is the SSH form `git@github.com:...`), then push `main` only when the user says so.
-- [ ] **Step 4 (after the user-approved push): verify.** The Actions run on `main` goes green; the package appears under the user's ghcr packages; set it to public in the package settings (manual, one-time); `docker pull` it anonymously; run the cosign verify command from the README. Expected: verification succeeds.
-- [ ] **Step 5 (optional, user-approved): test the rolling tags.** Push tag `v0.1.0` and confirm that `0.1.0`, `0.1` and (per metadata-action's behavior for 0.x) the major tag appear. Then optionally tag `v1.0.0` and `v1.0.1`, and confirm `1` and `1.0` move.
+- [x] **Step 1: Write a short `README.md`:** what it is; `mise run run/test/docker-build/docker-run`; the tag scheme; how to verify the signature: `cosign verify ghcr.io/<user>/golang-docker-example:latest --certificate-identity-regexp 'https://github.com/<user>/golang-docker-example/' --certificate-oidc-issuer https://token.actions.githubusercontent.com`.
+- [x] **Step 2: Commit:** `docs: add readme`.
+- [x] **Step 3: STOP and ask the user** before creating or pushing the remote. On approval: `gh repo create golang-docker-example --public --source=. --remote=origin` (confirm the remote URL is the SSH form `git@github.com:...`), then push `main` only when the user says so.
+- [x] **Step 4 (after the user-approved push): verify.** The Actions run on `main` goes green; the package appears under the user's ghcr packages; set it to public in the package settings (manual, one-time); `docker pull` it anonymously; run the cosign verify command from the README. Expected: verification succeeds.
+- [x] **Step 5 (optional, user-approved): test the rolling tags.** Push tag `v0.1.0` and confirm that `0.1.0`, `0.1` and (per metadata-action's behavior for 0.x) the major tag appear. Then optionally tag `v1.0.0` and `v1.0.1`, and confirm `1` and `1.0` move.
+
+---
+
+## Execution notes
+
+Completed 2026-11-02. Deviations from the plan as written:
+
+- Go 1.26.10 was installed manually from a tarball: Zscaler blocked mise's download. Pinned in `mise.toml`, `go.mod` and the Dockerfile.
+- Action versions are current majors (`checkout@v7`, `setup-go@v7`, `build-push-action@v7`, etc.), not the v4/v5 in Task 4. `sigstore/cosign-installer` and `aquasecurity/trivy-action` are pinned to exact tags (no floating major).
+- Added a `scan` mise task (trivy, `--db-repository ghcr.io/aquasecurity/trivy-db` to get past Zscaler) and `trivy` in `mise.toml`.
+- Rolling-tag test used `v0.0.1` and `v0.0.2-rc.1`; `metadata-action` does publish the bare `0` tag for 0.x. The RC published only its exact tag.
